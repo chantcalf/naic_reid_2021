@@ -6,6 +6,7 @@ Created on Wed Jan 19 19:12:47 2022
 """
 import json
 import os
+import time
 
 import numpy as np
 import torch
@@ -18,7 +19,7 @@ device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cp
 
 
 def read_dat(fpath):
-    return np.fromfile(fpath).astype('float32')
+    return np.fromfile(fpath, dtype='float32')
 
 
 class TestDataSet:
@@ -38,8 +39,8 @@ class TestDataSet:
 class DefaultCfg:
     query_path = os.path.join(work_dir, '../data/test_A/query_feature_A')
     gallery_path = os.path.join(work_dir, '../data/test_A/gallery_feature_A')
-    query_batch_size = 200
-    gallery_batch_size = 1000
+    query_batch_size = 20000
+    gallery_batch_size = 10000
     num_workers = 0
     save_path = "./sub_A.json"
     topk = 100
@@ -58,6 +59,7 @@ def get_cosine_dist(x, y):
 def predict_res(cfg, query_loader, gallery_loader):
     res = []
     for q_id, q_data in tqdm(query_loader):
+        start_time = time.time()
         q_data = q_data.to(device)
         best_dist = None
         best_id = None
@@ -75,6 +77,7 @@ def predict_res(cfg, query_loader, gallery_loader):
                 best_dist, tid = torch.topk(best_dist, cfg.topk, dim=1)
                 best_id = best_id.gather(1, tid)
         res.append([q_id, best_id, best_dist])
+        print(f"cost {time.time() - start_time}s")
     return res
 
 
