@@ -107,6 +107,12 @@ def main():
     with open(cfg.save_path, "w", encoding='utf8') as f:
         json.dump(ans, f)
 
+    with open(cfg.save_path, "r", encoding='utf8') as f:
+        content = f.read()
+
+    with open(cfg.save_path, "w", encoding='utf8') as f:
+        f.write(content.replace("png", "dat"))
+
 
 if __name__ == "__main__":
     main()
