@@ -31,7 +31,7 @@ def get_non_zero(ds):
     res = 0
     n = 0
     for data in ds:
-        res = (res * n + np.abs(data)) / (n + 1)
+        res = (res * n + data.abs().sum(0)) / (n + 1)
         n += 1
     return [i for i in range(2048) if res[i] > 1e-5]
 
@@ -40,13 +40,13 @@ class DataSet:
     def __init__(self, fpaths):
         self.fpaths = fpaths
         self.num = len(self.fpaths)
-        
+
     def __len__(self):
         return self.num
-    
+
     def __getitem__(self, index):
         return read_dat(self.fpaths[index])
-    
+
 
 def set_seed(seed):
     os.environ["PYTHONASHSEED"] = str(seed)
@@ -65,7 +65,6 @@ def lr_scheduler(step, warm_up_step, max_step):
     return 0.5 + (1 - 0.5) * 0.5 * (1 + math.cos((step - warm_up_step) / (max_step - warm_up_step) * math.pi))
 
 
-
 class DefaultCfg:
     all_data = [
         './train_A/train_features',
@@ -82,7 +81,7 @@ class DefaultCfg:
     num_workers = NUM_WORKERS
     bs = [64, 128, 256]
     model_path = './compress.pth'
-    
+
 
 def main():
     cfg = DefaultCfg()
@@ -93,9 +92,12 @@ def main():
         fpaths = fpaths + [os.path.join(fdir, name) for name in names]
     n = len(fpaths)
     ds = DataSet(fpaths)
-    select_index = get_non_zero(ds)
+    dl = torch.utils.data.DataLoader(
+        ds, batch_size=cfg.batch_size, shuffle=False,
+        num_workers=cfg.num_workers, pin_memory=True)
+    select_index = get_non_zero(dl)
     LOGGER.info(f"select index {len(select_index)}")
-    del ds
+    del ds, dl
     all_ids = list(range(len(fpaths)))
     random.shuffle(all_ids)
     train_n = int(n * cfg.train_sp)
@@ -108,10 +110,10 @@ def main():
     test_loader = torch.utils.data.DataLoader(
         test_ds, batch_size=cfg.batch_size, shuffle=False,
         num_workers=cfg.num_workers, pin_memory=True)
-    
+
     model = TrainModel(cfg.bs, select_index)
     model.to(device)
-    
+
     steps_per_epoch = len(train_ds) // cfg.batch_size
     optimizer = torch.optim.AdamW(model.parameters(),
                                   lr=cfg.learning_rate,
@@ -139,7 +141,6 @@ def main():
             if i % 100 == 0:
                 loss_print = "\t".join([f"{key} {losses[key].item():.3f}" for key in losses])
                 LOGGER.info(f'Epoch: [{epoch}] step: [{i}/{steps_per_epoch}]\t' + loss_print)
-        
 
         model.eval()
         tloss = [0, 0, 0]
@@ -158,10 +159,9 @@ def main():
             torch.save(model.state_dict(), cfg.model_path)
             LOGGER.info("Model saved")
             best_loss = average_loss
-        
+
         LOGGER.info(f"cost {time.time() - epoch_start_time}s")
         LOGGER.info("###########")
-    
 
 
 if __name__ == "__main__":

@@ -36,13 +36,16 @@ class TestDataSet:
         return index, read_dat(self.fpaths[index])
 
 
+test_type = "B"
+
+
 class DefaultCfg:
-    query_path = os.path.join(work_dir, '../data/test_A/query_feature_A')
-    gallery_path = os.path.join(work_dir, '../data/test_A/gallery_feature_A')
+    query_path = os.path.join(work_dir, f'../data/test_{test_type}/query_feature_{test_type}')
+    gallery_path = os.path.join(work_dir, f'../data/test_{test_type}/gallery_feature_{test_type}')
     query_batch_size = 20000
     gallery_batch_size = 10000
     num_workers = 0
-    save_path = "./sub_A.json"
+    save_path = f"./sub_{test_type}.json"
     topk = 100
 
 

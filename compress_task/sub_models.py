@@ -5,11 +5,11 @@ Created on Wed Feb 16 19:06:45 2022
 @author: chantcalf
 """
 from functools import partial
+
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
 
 VQ_B = 8
 VQ_DIM = 8
@@ -62,7 +62,7 @@ class MLP(nn.Module):
 
     def forward(self, x):
         return self.fc(x)
-    
+
 
 class ResMLP(nn.Module):
     def __init__(self, indim, hidden):
@@ -77,7 +77,7 @@ class ResMLP(nn.Module):
 class Encoder(nn.Module):
     def __init__(self, bs=[64, 128, 256], select_index=None, vq_b=VQ_B, vq_dim=VQ_DIM):
         super().__init__()
-        self.n = 463
+        self.n = 462
         if select_index is None:
             select_index = list(range(self.n))
         self.vq_dim = vq_dim
@@ -86,6 +86,7 @@ class Encoder(nn.Module):
             nn.Linear(self.n, 512),
             ResMLP(512, 2048),
         )
+        self.vq_b = vq_b
         self.bd = {b: i for i, b in enumerate(bs)}
         self.heads = nn.ModuleList([
             nn.Linear(512, b * 8 // self.vq_b * self.vq_dim)
@@ -95,7 +96,7 @@ class Encoder(nn.Module):
             VQ(vq_b, vq_dim)
             for _ in bs
         ])
-    
+
     def forward(self, x, bit):
         b = x.size(0)
         i = self.bd[bit]
@@ -109,7 +110,7 @@ class Encoder(nn.Module):
 class Decoder(nn.Module):
     def __init__(self, bs=[64, 128, 256], select_index=None, vq_b=VQ_B, vq_dim=VQ_DIM):
         super().__init__()
-        self.n = 463
+        self.n = 462
         if select_index is None:
             select_index = list(range(self.n))
         self.vq_dim = vq_dim
@@ -119,6 +120,7 @@ class Decoder(nn.Module):
             nn.Linear(512, self.n),
         )
         self.bd = {b: i for i, b in enumerate(bs)}
+        self.vq_b = vq_b
         self.heads = nn.ModuleList([
             nn.Linear(b * 8 // self.vq_b * self.vq_dim, 512)
             for b in bs
@@ -127,7 +129,7 @@ class Decoder(nn.Module):
             VQ(vq_b, vq_dim)
             for _ in bs
         ])
-    
+
     def forward(self, x, bit):
         b = x.size(0)
         i = self.bd[bit]
@@ -137,7 +139,7 @@ class Decoder(nn.Module):
         y = torch.zeros((b, 2048)).float().to(x.device)
         y.scatter_(1, self.select_index.expand(b, -1), x)
         return y
-    
+
 
 class TrainModel(nn.Module):
     def __init__(self, bs=[64, 128, 256], select_index=None, vq_b=VQ_B, vq_dim=VQ_DIM):
@@ -146,7 +148,7 @@ class TrainModel(nn.Module):
         self.encoder = Encoder(bs, select_index, vq_b, vq_dim)
         self.decoder = Decoder(bs, select_index, vq_b, vq_dim)
         self.decoder.vqs = self.encoder.vqs
-        
+
     def forward(self, x):
         b = x.size(0)
         x = x.gather(1, self.encoder.select_index.expand(b, -1))
@@ -159,26 +161,26 @@ class TrainModel(nn.Module):
             yi = self.decoder.heads[i](qy.view(b, -1))
             yi = self.decoder.blocks(yi)
             losses[f"{bit}_loss"] = self.cal_loss(x, yi).mean()
-            losses[f"{bit}_loss"] = loss1 + loss2 * 0.25
+            losses[f"{bit}_loss_vq"] = loss1 + loss2 * 0.25
         return losses
-            
+
     @staticmethod
     def cal_loss(x, y):
         return (x - y).pow(2).sum(-1).sqrt()
-            
+
 
 if __name__ == "__main__":
     bs = [64, 128, 256]
-    select_index = [1, 3, 5]
+    select_index = None
     a = Encoder(bs, select_index)
     b = Decoder(bs, select_index)
     c = TrainModel(bs, select_index)
-    x = torch.tensor([[0, 1, 0, 2, 0, 3]]).float()
+    x = torch.randn((2, 2048))
     for bit in bs:
         x1 = a(x, bit)
         print(x1.shape)
         x2 = b(x1, bit)
         print(x2.shape)
-    
+
     losses = c(x)
     print(losses)
