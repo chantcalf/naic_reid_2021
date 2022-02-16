@@ -42,4 +42,4 @@ def reconstruct(byte_rate: str):
             reconstructed_fea_path = os.path.join(reconstructed_query_fea_dir, query_basename + '.dat')
             write_feature_file(fea, reconstructed_fea_path)
 
-    print('Decode Done' + byte_rate)
+    print(f'Decode Done {byte_rate}')

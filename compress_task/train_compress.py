@@ -4,18 +4,19 @@ Created on Wed Feb 16 19:41:54 2022
 
 @author: chantcalf
 """
-import os
-import time
 import math
+import os
 import random
+import time
 from functools import partial
 
 import numpy as np
 import torch
 from torch.nn.utils import clip_grad_norm_
 from torch.optim.lr_scheduler import LambdaLR
-from sub_models import TrainModel
+
 from config import Logger, LOG_DIR, TRAIN_DATA_DIR, NUM_WORKERS
+from sub_models import TrainModel
 
 os.environ["CUDA_VISIBLE_DEVICES"] = '0'
 
@@ -67,9 +68,9 @@ def lr_scheduler(step, warm_up_step, max_step):
 
 class DefaultCfg:
     all_data = [
-        './train_A/train_features',
-        './test_A/testA_query_features',
-        './test_A/testA_gallery_features'
+        os.path.join(TRAIN_DATA_DIR, 'train/train_feature'),
+        os.path.join(TRAIN_DATA_DIR, 'test_A/query_feature_A'),
+        os.path.join(TRAIN_DATA_DIR, 'test_A/gallery_feature_A')
     ]
     seed = 1992
     batch_size = 256

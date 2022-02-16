@@ -41,5 +41,5 @@ class Logger:
 
 LOG_DIR = os.path.join(CONFIG_DIR, "../log")
 os.makedirs(LOG_DIR, exist_ok=True)
-TRAIN_DATA_DIR = os.path.join(CONFIG_DIR, "../train")
+TRAIN_DATA_DIR = os.path.join(CONFIG_DIR, "../data")
 NUM_WORKERS = 4 if sys.platform == "linux" else 0  # WINDOWS下0比任意数都快

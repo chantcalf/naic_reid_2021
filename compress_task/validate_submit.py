@@ -10,13 +10,8 @@ from submit_compress import compress_all
 from submit_reconstruct import reconstruct
 from train_compress import read_dat
 
-
 query_fea_dir = './query_feature'
-save_dir = './compressed_query_feature'
-
-for byte in ["64", "128", "256"]:
-    compress_all(query_fea_dir, int(byte))
-    reconstruct(int(byte))
+save_dir = './reconstructed_query_feature'
 
 
 def cal_loss(x, y):
@@ -24,12 +19,15 @@ def cal_loss(x, y):
     return np.sqrt(np.sum(dif * dif))
 
 
-loss = 0
-names = os.listdir(query_fea_dir)
-n = len(names)
-for name in names:
-    x = read_dat(os.path.join(query_fea_dir, name))
-    y = read_dat(os.path.join(save_dir, name))
-    loss += cal_loss(x, y)
+for byte in ["64", "128", "256"]:
+    compress_all(query_fea_dir, int(byte))
+    reconstruct(int(byte))
+    loss = 0
+    names = os.listdir(query_fea_dir)
+    n = len(names)
+    for name in names:
+        x = read_dat(os.path.join(query_fea_dir, name))
+        y = read_dat(os.path.join(save_dir, byte, name))
+        loss += cal_loss(x, y)
 
-print(loss / n)
+    print(loss / n)
