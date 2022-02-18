@@ -4,7 +4,8 @@ import zipfile
 import numpy as np
 import shutil
 import torch
-from sub_models import TrainModel
+from .sub_models import TrainModel
+MODEL_NAME = './compress.pth'
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
@@ -38,8 +39,10 @@ def compress_feature(fea: np.ndarray, target_bytes: int, path: str):
 
 
 def compress_all(input_path: str, bytes_rate: int):
-    model = TrainModel([64, 128, 256])
-    model.load_state_dict(torch.load('./compress.pth'))
+    st = torch.load(MODEL_NAME, map_location='cpu')
+    select_index = st["encoder.select_index"][0].numpy()
+    model = TrainModel([64, 128, 256], select_index)
+    model.load_state_dict(st)
     model.to(device)
     model.eval()
 

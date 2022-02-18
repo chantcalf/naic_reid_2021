@@ -4,9 +4,7 @@ Created on Wed Feb 16 19:06:45 2022
 
 @author: chantcalf
 """
-from functools import partial
 
-import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -77,9 +75,7 @@ class ResMLP(nn.Module):
 class Encoder(nn.Module):
     def __init__(self, bs=[64, 128, 256], select_index=None, vq_b=VQ_B, vq_dim=VQ_DIM):
         super().__init__()
-        self.n = 462
-        if select_index is None:
-            select_index = list(range(self.n))
+        self.n = len(select_index)
         self.vq_dim = vq_dim
         self.register_buffer("select_index", torch.tensor(select_index).long().unsqueeze(0))
         self.blocks = nn.Sequential(
@@ -110,9 +106,7 @@ class Encoder(nn.Module):
 class Decoder(nn.Module):
     def __init__(self, bs=[64, 128, 256], select_index=None, vq_b=VQ_B, vq_dim=VQ_DIM):
         super().__init__()
-        self.n = 462
-        if select_index is None:
-            select_index = list(range(self.n))
+        self.n = len(select_index)
         self.vq_dim = vq_dim
         self.register_buffer("select_index", torch.tensor(select_index).long().unsqueeze(0))
         self.blocks = nn.Sequential(
@@ -171,7 +165,7 @@ class TrainModel(nn.Module):
 
 if __name__ == "__main__":
     bs = [64, 128, 256]
-    select_index = None
+    select_index = [1, 3, 5]
     a = Encoder(bs, select_index)
     b = Decoder(bs, select_index)
     c = TrainModel(bs, select_index)

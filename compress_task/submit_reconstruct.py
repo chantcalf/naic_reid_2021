@@ -2,7 +2,8 @@ import os
 import glob
 import numpy as np
 import torch
-from sub_models import TrainModel
+from .sub_models import TrainModel
+MODEL_NAME = './compress.pth'
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
@@ -23,8 +24,10 @@ def write_feature_file(fea: np.ndarray, path: str):
 
 
 def reconstruct(byte_rate: str):
-    model = TrainModel([64, 128, 256])
-    model.load_state_dict(torch.load('./compress.pth'))
+    st = torch.load(MODEL_NAME, map_location='cpu')
+    select_index = st["encoder.select_index"][0].numpy()
+    model = TrainModel([64, 128, 256], select_index)
+    model.load_state_dict(st)
     model.to(device)
     model.eval()
 
