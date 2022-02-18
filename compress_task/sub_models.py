@@ -81,6 +81,7 @@ class Encoder(nn.Module):
         self.blocks = nn.Sequential(
             nn.Linear(self.n, 512),
             ResMLP(512, 2048),
+            ResMLP(512, 2048),
         )
         self.vq_b = vq_b
         self.bd = {b: i for i, b in enumerate(bs)}
@@ -110,6 +111,7 @@ class Decoder(nn.Module):
         self.vq_dim = vq_dim
         self.register_buffer("select_index", torch.tensor(select_index).long().unsqueeze(0))
         self.blocks = nn.Sequential(
+            ResMLP(512, 2048),
             ResMLP(512, 2048),
             nn.Linear(512, self.n),
         )

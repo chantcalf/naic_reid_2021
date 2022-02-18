@@ -63,7 +63,7 @@ def set_seed(seed):
 def lr_scheduler(step, warm_up_step, max_step):
     if step < warm_up_step:
         return 1e-2 + (1 - 1e-2) * step / warm_up_step
-    return 0.5 + (1 - 0.5) * 0.5 * (1 + math.cos((step - warm_up_step) / (max_step - warm_up_step) * math.pi))
+    return 0.1 + (1 - 0.1) * 0.5 * (1 + math.cos((step - warm_up_step) / (max_step - warm_up_step) * math.pi))
 
 
 class DefaultCfg:
@@ -74,9 +74,9 @@ class DefaultCfg:
     ]
     seed = 1992
     batch_size = 256
-    epochs = 1
+    epochs = 100
     warmup = 1000
-    learning_rate = 1e-3
+    learning_rate = 6e-4
     weight_decay = 0.05
     train_sp = 0.9
     num_workers = NUM_WORKERS
@@ -85,6 +85,7 @@ class DefaultCfg:
 
 
 def main():
+    LOGGER.info("start")
     cfg = DefaultCfg()
     set_seed(cfg.seed)
     fpaths = []
