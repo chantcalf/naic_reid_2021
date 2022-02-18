@@ -1,8 +1,13 @@
-import os
 import glob
+import os
+
 import numpy as np
 import torch
-from .sub_models import TrainModel
+
+try:
+    from sub_models import TrainModel
+except:
+    from sub_models import TrainModel
 MODEL_NAME = './compress.pth'
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -34,7 +39,7 @@ def reconstruct(byte_rate: str):
     compressed_query_fea_dir = 'compressed_query_feature/{}'.format(byte_rate)
     reconstructed_query_fea_dir = 'reconstructed_query_feature/{}'.format(byte_rate)
     os.makedirs(reconstructed_query_fea_dir, exist_ok=True)
-
+    byte_rate = int(byte_rate)
     compressed_query_fea_paths = glob.glob(os.path.join(compressed_query_fea_dir, '*.*'))
     with torch.no_grad():
         for compressed_query_fea_path in compressed_query_fea_paths:

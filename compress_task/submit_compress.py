@@ -1,10 +1,15 @@
-import os
 import glob
-import zipfile
-import numpy as np
+import os
 import shutil
+import zipfile
+
+import numpy as np
 import torch
-from .sub_models import TrainModel
+
+try:
+    from sub_models import TrainModel
+except:
+    from sub_models import TrainModel
 MODEL_NAME = './compress.pth'
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -68,6 +73,3 @@ def compress(test_path: str, byte: str):
     compress_all(query_fea_dir, int(byte))
     shutil.rmtree(query_fea_dir)
     return 1
-
-
-
