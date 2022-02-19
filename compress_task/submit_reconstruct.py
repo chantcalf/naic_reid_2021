@@ -7,7 +7,7 @@ import torch
 try:
     from sub_models import TrainModel
 except:
-    from sub_models import TrainModel
+    from .sub_models import TrainModel
 MODEL_NAME = './compress.pth'
 
 device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
