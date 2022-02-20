@@ -124,8 +124,8 @@ def lr_scheduler(step, warm_up_step, max_step):
 class DefaultCfg:
     all_data = [
         os.path.join(TRAIN_DATA_DIR, 'train/train_feature'),
-        # os.path.join(TRAIN_DATA_DIR, 'test_A/query_feature_A'),
-        # os.path.join(TRAIN_DATA_DIR, 'test_A/gallery_feature_A')
+        os.path.join(TRAIN_DATA_DIR, 'test_A/query_feature_A'),
+        os.path.join(TRAIN_DATA_DIR, 'test_A/gallery_feature_A')
     ]
     seed = 1992
     batch_size = 256
